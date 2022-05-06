@@ -43,11 +43,11 @@ void main() {
     blocTest<PersonsBloc, FetchResult?>(
       'The initial state of the bloc should be null',
       build: () => bloc,
-      verify: (bloc) => bloc.state == null,
+      verify: (bloc) => expect(bloc.state, null),
     );
 
     blocTest<PersonsBloc, FetchResult?>(
-      'Should retrive persons from fist iterable',
+      'Should retrive persons from first iterable',
       build: () => bloc,
       act: (bloc) {
         bloc.add(
@@ -71,6 +71,36 @@ void main() {
         ),
         const FetchResult(
           persons: mockedPersons1,
+          isRetrivedFromCache: true,
+        ),
+      ],
+    );
+
+    blocTest<PersonsBloc, FetchResult?>(
+      'Should retrive persons from second iterable',
+      build: () => bloc,
+      act: (bloc) {
+        bloc.add(
+          const LoadPersonsAction(
+            personLoader: mockGetPersons2,
+            url: 'dummy url 2',
+          ),
+        );
+
+        bloc.add(
+          const LoadPersonsAction(
+            personLoader: mockGetPersons2,
+            url: 'dummy url 2',
+          ),
+        );
+      },
+      expect: () => [
+        const FetchResult(
+          persons: mockedPersons2,
+          isRetrivedFromCache: false,
+        ),
+        const FetchResult(
+          persons: mockedPersons2,
           isRetrivedFromCache: true,
         ),
       ],
