@@ -13,7 +13,23 @@ class LoadingScreen {
 
   LoadingScreenController? _controller;
 
-  LoadingScreenController showOverlay({
+  void show({
+    required BuildContext context,
+    required String text,
+  }) {
+    if (_controller?.update(text) ?? false) {
+      return;
+    } else {
+      _controller = _showOverlay(context: context, text: text);
+    }
+  }
+
+  void hide() {
+    _controller?.close();
+    _controller = null;
+  }
+
+  LoadingScreenController _showOverlay({
     required BuildContext context,
     required String text,
   }) {
@@ -39,9 +55,51 @@ class LoadingScreen {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(10.0),
               ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(
+                        height: 10.0,
+                      ),
+                      const CircularProgressIndicator(),
+                      const SizedBox(
+                        height: 10.0,
+                      ),
+                      StreamBuilder<String>(
+                        stream: _text.stream,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return Text(
+                              snapshot.data!,
+                              textAlign: TextAlign.center,
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         );
+      },
+    );
+
+    state?.insert(overlay);
+
+    return LoadingScreenController(
+      close: () {
+        _text.close();
+        overlay.remove();
+        return true;
+      },
+      update: (text) {
+        _text.add(text);
+        return true;
       },
     );
   }
